@@ -1,0 +1,6 @@
+checkpoints/
+__pycache__/
+*.tar.gz
+part-1/out/
+part-1/out_augmented/
+*.pkl

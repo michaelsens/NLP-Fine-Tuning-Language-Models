@@ -44,7 +44,55 @@ def custom_transform(example):
 
     # You should update example["text"] using your transformation
 
-    raise NotImplementedError
+    drop_words = {"i", "we", "she", "he", "a", "an", "the", "this", "that", "these", "those", "its", "my", "very", "really", "just", "so"} #partially llm generated
+
+    nearby_keys = { # llm generated
+        'a': ['s', 'q', 'z'],
+        'e': ['w', 'r', 'd'],
+        'i': ['u', 'o', 'k'],
+        'o': ['i', 'p', 'l'],
+        'u': ['y', 'i', 'j'],
+        'A': ['S', 'Q', 'Z'],
+        'E': ['W', 'R', 'D'],
+        'I': ['U', 'O', 'K'],
+        'O': ['I', 'P', 'L'],
+        'U': ['Y', 'I', 'J'],
+    }
+
+    words = word_tokenize(example["text"])
+    new_words = []
+
+    for word in words:
+        if word.lower() in drop_words:
+            if random.random() < 0.35:
+                continue
+            else:
+                new_words.append(word)
+        elif random.random() < 0.45:
+            synsets = wordnet.synsets(word)
+            if not synsets:
+                new_words.append(word)
+                continue
+            if len(synsets[0].lemmas()) > 1:
+                new_words.append(synsets[0].lemmas()[1].name().replace("_", " "))
+            else:
+                new_words.append(word)
+        else:    
+            new_words.append(word)
+
+    swapped_ex = TreebankWordDetokenizer().detokenize(new_words).replace(" .", ".")
+
+    new_chars = ""
+    for char in swapped_ex:
+        if char in nearby_keys and random.random() < 0.075:
+            new_chars += nearby_keys[char][random.randint(0,2)]
+        else:
+            new_chars += char
+
+    sentences = new_chars.split(". ")
+    random.shuffle(sentences)
+    example["text"] = ". ".join(sentences)
+    
 
     ##### YOUR CODE ENDS HERE ######
 
